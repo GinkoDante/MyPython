@@ -20,9 +20,9 @@ DBTYPE = 'mysql'
 #DBTYPE = 'pg'
 
 # Constants for the database driver
-DBHOST = 'localhost'
+DBHOST = '127.0.0.1'
 DBUSER = 'root'
-DBPASSWD = ''
+DBPASSWD = 'gtrhalo2'
 TESTDB = 'biosql_test'
 
 ################################
