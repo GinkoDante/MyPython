@@ -1,17 +1,31 @@
 import random
 import socket
 import sys
-from html.parser import HTMLParser
+from Bio import Entrez
+from Bio import SeqIO
+from BioSQL import BioSeqDatabase
 
 
-class MyHTMLParser(HTMLParser):
-    def handle_starttag(self, tag, attrs):
-        print("Encountered a start tag:", tag)
-        print(str(self.get_starttag_text()))
-    def handle_endtag(self, tag):
-        print("Encountered an end tag :", tag)
-    def handle_data(self, data):
-        print("Encountered some data  :", data)
+class BioServer:
+
+    def __init__(self):
+        # server = BioSeqDatabase.open_database(driver="MySQLdb", user="root", passwd="gtrhalo2", host="127.0.0.1", db="bioseqdb")
+        serverName = ""
+        driver = "MySQLdb"
+        user = ""
+        passwd = ""
+        host = "127.0.0.1"
+        db = "bioseqdb"
+        connected = True
+
+    def get_Connected(self):
+        return self.connected
+
+    def set_Connnected(self, connectAction):
+        self.connected = connectAction
+
+    def Disconnect(self):
+        self.connected = False
 
 #Structure of each cells functions, time and quantity
 class Cell:
@@ -55,20 +69,9 @@ class Cell:
         self.rnaSeq = []
         self.numPS += 1
 
-        #Replication of dna strand into sense (coding) strand and anti-sense strand (template)
-
-
+        # Replication of dna strand into sense (coding) strand and anti-sense strand (template)
 
         # Transcribe dna strand and find complement rna sequence via RNA polymerase
-        for nucleo in self.currDNASeq:
-            if nucleo == 'A':
-                self.rnaSeq.append('U')
-            elif nucleo == 'G':
-                self.rnaSeq.append('C')
-            elif nucleo == 'C':
-                self.rnaSeq.append('G')
-            else:
-                self.rnaSeq.append('A')
 
     def Apoptosis(self):
         None
@@ -131,96 +134,103 @@ def GenPSTime(maxPSNum):
     return random.randrange(1, maxPSNum+1)
 
 
-mysock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# Connect to web server at port 80
-mysock.connect(('www.ncbi.nlm.nih.gov', 80))
+def Create_SubDB():
+    # 1. Create a sub database for sequences to be added to
+    server = BioSeqDatabase.open_database(driver="MySQLdb", user="root", passwd="gtrhalo2", host="127.0.0.1", db="bioseqdb")
 
-# Send command to get text file
-request = 'GET http://www.ncbi.nlm.nih.gov/nuccore/?term=earthworm HTTP/1.0\n\n'
-mysock.send(request.encode())
+    db = server.new_database("orchids", description="Just to Test")
 
-while True:
-    data = mysock.recv(512).decode()
-    if ( len(data) < 1 ) :
-        break
-    print(data)
+def Connect_Server():
 
-mysock.close()
-
-# Block for Links
-'''
-
-</div>
-    <div>
-        <div class="rprt">
-            <div class="rprtnum nohighlight">
-                <label for="UidCheckBox25989914" class="ui-helper-hidden-accessible">Select item 25989914</label>
-                    <input name="EntrezSystem2.PEntrez.Nuccore.Sequence_ResultsPanel.Sequence_RVDocSum.uid" sid="1" type="checkbox" id="UidCheckBox25989914" value="25989914" accn="AY154648.1" /><span>1.</span>
-                        </div>
-                            <div class="rslt"><p class="title"><a href="/nuccore/AY154648.1" ref="ordinalpos=1">Uncultured <b>earthworm</b> intestine bacterium clone wi128 16S ribosomal RNA gene, partial sequence</a></p><div class="supp"><p class="desc">1,292 bp linear DNA </p>
-                        </div>
-                            <div class="aux">
-                                <div class="resc">
-                                    <class="rprtid"><dt>Accession:</dt> <dd>AY154648.1</dd> <dt>GI:</dt> <dd>25989914</dd> </dl></div>
-                                    <p class="links">
-                                        <a ref="ordinalpos=1" href="/nuccore/25989914?report=genbank">GenBank</a>
-                                        <a ref="ordinalpos=1" href="/nuccore/25989914?report=fasta">FASTA</a>
-                                        <a ref="ordinalpos=1" href="/nuccore/25989914?report=graph">Graphics</a>
-                                        <a ref="ordinalpos=1" href="/popset?DbFrom=nuccore&amp;Cmd=Link&amp;LinkName=nuccore_popset&amp;IdsFromResult=25989914">PopSet</a>
-                                    </p>
-                                </div>
-                            </div>
-'''
-# Look for FATSA Links
-# <a ref="ordinalpos=1" href="/nuccore/25989914?report=fasta">FASTA</a>
-
-parser = MyHTMLParser()
-
-# File containing html to parse
-# htmlFileName = sys.argv[1]
-
-htmlFileName = 'NCBI_Connect.txt'
-
-# Try to open the file
-try:
-    htmlFile = open(htmlFileName)
-
-    outLinkLines = []
-
-    htmlLineList = htmlFile.readlines()
-
-    for line in htmlLineList:
-        if parser.handle_starttag()
-
-except IOError:
-    print("Unable to open file.")
+    server = BioSeqDatabase.open_database(driver="MySQLdb", user="root", passwd="gtrhalo2", host="127.0.0.1", db="bioseqdb")
 
 
+def Connect_DB(server):
+
+    # Fetch the wanted sequences and load into the created sub database
+    db = server["orchids"]
+
+def Connect_SvrDB():
+        server = BioSeqDatabase.open_database(driver="MySQLdb", user="root", passwd="gtrhalo2", host="127.0.0.1", db="bioseqdb")
+
+        # Fetch the wanted sequences and load into the created sub database
+        db = server["orchids"]
+
+def FetchSeq(connectedToServer):
+
+    if connectedToServer:
+        # Get server Already connected to
+    else:
+        Connect_Server()
+
+    # Fetch the following records from the Web
+    handle = Entrez.efetch(db="nuccore", id="6273291,6273290,6273289", rettype="gb", retmode="text")
+
+    # Load returns number of records handled into db
+    count = db.load(SeqIO.parse(handle, "genbank"))
+
+    print "Loaded %i records" % count
+
+    handle.close()
+
+    # Commit records to db to ensure they are entered
+    server.adaptor.commit()
+
+def FetchSeq():
+    # Extract sequences from sub database for use
+    # Connect to "server" and open db
+    server = BioSeqDatabase.open_database(driver="MySQLdb", user="root", passwd="gtrhalo2", host="127.0.0.1", db="bioseqdb")
+
+    # select sub database
+    db = server["orchids"]
+
+    print("This database contains %i records" % len(db))
+
+    # find records for each identifier
+    for identifier in ['6273290']:
+        # Retrieve the sequence record by lookuping the Id
+        seq_record = db.lookup(gi=identifier)
+
+        print(seq_record.id, seq_record.description[:50] + "...")
+
+        print("Sequence Length: %i\n" % len(seq_record.seq))
+
+# Create A Menu to display
+showMenu = True
+menuSelection = 0
+
+connectedToServer = False
+
+while showMenu:
+    print("Welcome to Protein Synthesis Simulation!\n")
+    print("Please select an option below.\n\n")
+    print("1. Create a Sub Database\n")
+    print("2. Connect to a Sub Database\n")
+    print("3. Fetch and Load a Sequence\n")
+    print("4. Run Protein Synthesis\n")
+
+    raw_input(menuSelection)
+
+    if menuSelection == 1:
+        connectedToServer = Connect_Server()
+        Create_SubDB()
+
+    elif menuSelection == 2:
+        Connect_Server()
+        Connect_DB()
+
+    elif menuSelection == 3:
+        Connect_Server()
+        Connect_DB()
+        FetchSeq()
+
+    elif menuSelection == 4:
+        ProteinSynthesis_Sim(100, str(seq_record.seq), 200, 15)
+
+    else:
+        print("Error")
 
 
-
-'''
-# Open and read in a dna sequence in FASTA format coding strand
-seqFileName = open("/Users/aliseramirez/Desktop/dna.txt")
-seqFile = seqFileName.read()
-#CodednaSeq = file_contents.rstrip("\n")
-print(seqFile)
-seqFileName.close()
-
-#Calculate the length of the DNA Sequence
-dna_length = len(seqFile)
-print("Number of nucleotides in sequence is " + str(dna_length))
-
-#Calculate the frequency of 'A,T,G,C' against background
-
-
-#Calculate the number of genes
-
-#Create an output file that will be the complement of the input file DNA sequence, the template the strand for RNA
-output_file = open("tempdnaSeq", "w")
-output_file.write(seqFile.replace('A', 'T'))
-output_file.write(seqFile.replace('G','C'))
-print(output_file)
-output_file.close()
-'''
-''' ProteinSynthesis_Sim(100, 'AGCT', 200, 15) '''
+# Create cells and run program to simulate
+# program has pieces which move in various ways through the knights tour problem
+# but are dictated by AI logic as to which path to take
