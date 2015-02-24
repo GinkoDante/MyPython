@@ -7,6 +7,7 @@ from BioSQL import BioSeqDatabase
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 from Bio.Seq import MutableSeq
+from Bio.SeqRecord import SeqRecord
 
 class BioServer:
 
