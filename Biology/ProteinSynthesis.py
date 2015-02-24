@@ -4,6 +4,8 @@ import sys
 from Bio import Entrez
 from Bio import SeqIO
 from BioSQL import BioSeqDatabase
+from Bio.Seq import Seq
+from Bio.Alphabet import IUPAC
 
 
 class BioServer:
@@ -33,8 +35,8 @@ class Cell:
     def __init__(self, id, dnaSeq, maxPSNum):
         self.id = id
         self.startDNASeq = dnaSeq
-        self.currDNASeq = list(dnaSeq)
-        self.rnaSeq = []
+        self.currDNASeq = dnaSeq
+        self.mrnaSeq = ""
         # self.ribosome = Ribosome()
         # self.mRNA = mRNA()
         # self.tRNA = tRNA()
@@ -57,12 +59,44 @@ class Cell:
     def Glycolysis(self):
         None
 
-    def DNATranscription(self):
-        None
+    def Transcription(self):
+        '''
+        Coding Strand (5' -> 3'):
+        ATGGCCATTGTAATGGGCCGCTGAAAGGGTGCCCGATAG
+
+        Template Strand (3' -> 5'):
+        TACCGGTAACATTACCCGGCGACTTTCCCACGGGCTATC
+
+        Transcription works on the Template Strand in the 5' to 3' direction
+        by performing a reverse complement to get the mRNA (5' -> 3'):
+
+        AUGGCCAUUGUAAUGGGCCGCUGAAAGGGUGCCCGAUAG
+
+        In BioPython however we just work with the coding strand and get the mrna by
+        switching all T -> U.
+        '''
+
+        coding_strand = Seq(self.currDNASeq, IUPAC.unambiguous_dna)
+        template_strand = coding_strand.reverse_complement()
+
+        # Bio Python method
+        self.mrnaSeq = coding_strand.transcribe()
+
+        # TRue Biological Process
+        mRNA_strandB = template_strand.reverse_complement().transcribe()
+
 
     def Translation(self):
-        None
-        #For translation, RNA sequence is needed and a library of the (2) amino acids (3 lett. abbrev)
+        # Find Proteins attributed to a mrnaSeq
+        messenger_rna = Seq(self.mrnaSeq, IUPAC.unambiguous_rna)
+
+        # Stop translation at first in frame stop codon as described in dna table
+        messenger_rna.translate(to_stop=True)
+
+        # We can also specify our own stop codon
+        # Use for our Simulation by splicing dna seq at various points?
+        messenger_rna.translate(stop_symbol="@")
+
 
     def ProteinSynthesis(self):
 
