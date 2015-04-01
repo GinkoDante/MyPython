@@ -48,22 +48,69 @@ class Stack:
     def peek(self):
         return self.items[self.numItems-1]
 
+class Vertex:
+    def __init__(self, gridNum):
+        self.id = gridNum
+        self.connectedTo = []
+        self.alphaValue = ''
+
+    def addNeighbor(self, nbrVert):
+        self.connectedTo.append(nbrVert)
+
+    def getId(self):
+        return self.id
+
+    def getGridNum(self):
+        return self.gridNum
+
 class Graph:
 
     def __init__(self):
+        self.vertexList = {}
+        self.numVertices = 0
 
+    def getAllVertices(self):
+        return self.vertexList.keys()
 
+    def getVertex(self, getVert):
 
+        if getVert in self.vertexList:
+            return self.vertexList[getVert]
 
+        else:
+            return None
 
-class Vertex:
+    def getNumVertices(self):
+        return self.numVertices
 
+    def addVertex(self, gridNum):
+
+        self.numVertices += 1
+
+        newVertex = Vertex(gridNum)
+
+        self.vertexList[gridNum] = newVertex
+
+        return newVertex
+
+    # Only add Edge if neighbors are a consecutive alphabetical key
+    def addEdge(self, vert1Key, vert2Key):
+
+        if vert1Key not in self.vertexList:
+            newVertex = self.addVertex(vert1Key)
+
+        if vert2Key not in self.vertexList:
+            newVertex = self.addVertex(vert2Key)
+
+        self.vertexList[vert1Key].addNeighbor(self.vertexList[vert2Key])
 
 def alphaPath(pathList):
 
     AlphabetList = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
 
     alphaStack = Stack()
+
+    alphaDict = {"A":"B", "B":"C", 'C':'D', 'D':'E', 'E':'F', 'F':'G', 'G':'H', 'H':'I', 'I':'J', 'J':'K', 'K':'L', 'L':'M', 'M':'N', 'N':'O', 'O':'P', 'P':'Q', 'Q':'R', 'R':'S', 'S':'T', 'T':'U', 'U':'V', 'V':'W', 'W':'X', 'X':'Y', 'Y':'Z'}
 
     for letter in reversed(AlphabetList):
         # print(letter)
